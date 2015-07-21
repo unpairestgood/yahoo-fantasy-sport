@@ -47,8 +47,9 @@ class FantasySport(object):
         headers = {'Content-Type':'application/{0}'.format(self.fmt)}
         data = roster.to_json() if self.fmt == 'json' else roster.to_xml() # Getting roster xml or json according to self.fmt
 
-        print data[0:800]
-        response = self.oauth.session.put(uri, data=data[0:800], headers=headers)
+        response = self.oauth.session.put(uri, data=data, headers=headers)
+        print response.status_code
+        print response.reason
 
 
     def _add_login(self, uri):

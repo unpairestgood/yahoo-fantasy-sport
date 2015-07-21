@@ -316,5 +316,6 @@ class TestPaulRoster(unittest.TestCase):
     
     def test_roster_fo_realz(self,):
         response = self.yfs.set_roster_players(['346.l.1328.t.12'], self.roster)
+        logging.debug(pretty_xml(response.content))
         self.assertEqual(response.status_code, 200)            
 
