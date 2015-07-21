@@ -43,10 +43,12 @@ class FantasySport(object):
         - uri : roster resource uri
         - roster : roster object
         """
-        headers = {'Content-Type':'application/{0}'.self.fmt}
+        #headers = {'Content-Type':'application/{0}'.self.fmt}
+        headers = {'Content-Type':'application/{0}'.format(self.fmt)}
         data = roster.to_json() if self.fmt == 'json' else roster.to_xml() # Getting roster xml or json according to self.fmt
 
-        response = self.oauth.session.put(uri, data=data, headers=headers)
+        print data[0:800]
+        response = self.oauth.session.put(uri, data=data[0:800], headers=headers)
 
 
     def _add_login(self, uri):
@@ -358,9 +360,9 @@ class FantasySport(object):
         >>> p1 = Player('242.p.8332','WR')
         >>> p2 = Player('242.p.8334','WL')
         >>> roster = Roster([p1, p2], date='2015-01-11')
-        >>> ysf.set_roster_players(['238.l.627062'], roster)
+        >>> yfs.set_roster_players(['238.l.627062'], roster)
         """
-        uri = self._build_uri(None, team_keys, sub='roster/players')
+        uri = self._build_uri(None, team_keys, sub='roster')
         uri = 'team/{0}'.format(uri)
 
         response = self._put(uri, roster)
@@ -386,3 +388,18 @@ class FantasySport(object):
             
         response = self._get(uri)
         return response
+        
+    def edit_waivers(self, team_keys, transactions):
+        """
+        >>> from fantasy_sport import Roster, Player
+        >>> p1 = Player('242.p.8332','WR')
+        >>> p2 = Player('242.p.8334','WL')
+        >>> roster = Roster([p1, p2], date='2015-01-11')
+        >>> ysf.edit_waivers(['238.l.627062'], roster)
+        """
+        uri = self._build_uri(None, team_keys, sub='roster/players')
+        uri = 'team/{0}'.format(uri)
+
+        response = self._put(uri, roster)
+        
+        

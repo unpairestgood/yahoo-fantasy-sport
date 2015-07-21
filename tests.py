@@ -249,7 +249,6 @@ class TestFantasySportTransaction(unittest.TestCase):
         #logging.debug(pretty_json(response.content))
         self.assertEqual(response.status_code, 200)
         
-<<<<<<< HEAD
 class TestFantasySportRoster(unittest.TestCase):
 
     def setUp(self,):
@@ -261,7 +260,6 @@ class TestFantasySportRoster(unittest.TestCase):
         logging.debug(pretty_json(response.content))
         self.assertEqual(response.status_code, 200)
         
-=======
 
 class TestPlayer(unittest.TestCase):
 
@@ -282,7 +280,7 @@ class TestPlayer(unittest.TestCase):
 class TestRoster(unittest.TestCase):
 
     def setUp(self,):
-        players = [Player('242.p.8332', 'WR'), Player('242.p.8334','LR')]
+        players = [Player('242.p.8332', 'WR'), Player('242.p.8334','WL')]
         self.roster = Roster(players, date='2015-01-01')
 
     def test_roster_in_json(self,):
@@ -293,7 +291,7 @@ class TestRoster(unittest.TestCase):
                     'date':'2015-01-01',
                     'players':[
                         {"player_key": "242.p.8332","position":"WR"},
-                        {"player_key": "242.p.8334","position":"LR"}
+                        {"player_key": "242.p.8334","position":"WL"}
                     ]
                 }
             }
@@ -302,7 +300,21 @@ class TestRoster(unittest.TestCase):
         self.assertEqual(expected, self.roster.json)
 
     def test_roster_in_xml(self,):
-        expected = b'<fantasy_content><roster><coverage_type>date</coverage_type><date>2015-01-01</date><players><player><player_key>242.p.8332</player_key><position>WR</position></player><player><player_key>242.p.8334</player_key><position>LR</position></player></players></roster></fantasy_content>'
+        expected = b'<fantasy_content><roster><coverage_type>date</coverage_type><date>2015-01-01</date><players><player><player_key>242.p.8332</player_key><position>WR</position></player><player><player_key>242.p.8334</player_key><position>WL</position></player></players></roster></fantasy_content>'
         logging.debug(pretty_xml(self.roster.to_xml()))
         self.assertEqual(expected, self.roster.to_xml())
->>>>>>> c5a4c4dc15231bb4334739dd7a0fb9b0b8362781
+        
+class TestPaulRoster(unittest.TestCase):    
+    
+    def setUp(self,):
+        players = [Player('346.p.8171', 'OF'), Player('346.p.9719','BN')]
+        self.roster = Roster(players, date='2015-07-21')
+        
+        oauth = OAuth1(None, None, from_file='oauth.json',base_url='http://fantasysports.yahooapis.com/fantasy/v2/')
+        self.yfs = FantasySport(oauth) 
+    
+    
+    def test_roster_fo_realz(self,):
+        response = self.yfs.set_roster_players(['346.l.1328.t.12'], self.roster)
+        self.assertEqual(response.status_code, 200)            
+
