@@ -390,7 +390,19 @@ class FantasySport(object):
         response = self._get(uri)
         return response
         
-    def edit_waivers(self, team_keys, transactions):
+    def get_all_completed_leagues_transactions(self, league_keys):
+        """Return all transactions form multiple leagues
+        >>>yfs.get_all_completed_leagues_transactions(['league_key1', 'leaguekey2'])
+        """
+        
+        uri = self._build_uri('leagues;league_keys', league_keys, sub='transactions')
+        response = self._get(uri)
+        return response
+        
+        
+    ### PUT Functions
+        
+    def edit_waivers(self, transaction_keys, transactions):
         """
         >>> from fantasy_sport import Roster, Player
         >>> p1 = Player('242.p.8332','WR')

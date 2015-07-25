@@ -245,8 +245,13 @@ class TestFantasySportTransaction(unittest.TestCase):
         self.yfs = FantasySport(oauth)
         
     def test_get_transactions(self,):
-        response = self.yfs.get_transactions(['346.l.1328.tr.100'], players='draft_analysis')
-        #logging.debug(pretty_json(response.content))
+        response = self.yfs.get_transactions(['346.l.1328.tr.100'], players=None)
+        logging.debug(pretty_json(response.content))
+        self.assertEqual(response.status_code, 200)
+        
+    def test_get_all_completed_leagues_transactions(self,):
+        response = self.yfs.get_all_completed_leagues_transactions(['346.l.1328'])
+        logging.debug(pretty_json(response.content))
         self.assertEqual(response.status_code, 200)
         
 class TestFantasySportRoster(unittest.TestCase):
