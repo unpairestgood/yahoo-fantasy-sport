@@ -8,7 +8,7 @@ from xml.etree import cElementTree as ctree
 from yahoo_oauth import OAuth1
 
 from fantasy_sport import FantasySport
-from fantasy_sport.roster import Player, Roster
+from fantasy_sport.roster import Player, Roster, Transaction
 from fantasy_sport.utils import pretty_json, pretty_xml
 
 logging.getLogger('yahoo_oauth').setLevel(logging.WARNING)

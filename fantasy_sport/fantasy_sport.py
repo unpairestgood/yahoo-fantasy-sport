@@ -361,7 +361,7 @@ class FantasySport(object):
         >>> p1 = Player('242.p.8332','WR')
         >>> p2 = Player('242.p.8334','WL')
         >>> roster = Roster([p1, p2], date='2015-01-11')
-        >>> yfs.set_roster_players(['238.l.627062'], roster)
+        >>> yfs.set_roster_players(['238.l.627062.t.1'], roster)
         """
         uri = self._build_uri(None, team_keys, sub='roster')
         uri = 'team/{0}'.format(uri)
@@ -375,6 +375,8 @@ class FantasySport(object):
     #    TRANSACTIONS
     #
     ##############################################
+    
+    ### GET Functions
     
     def get_transactions(self, transaction_keys, players=None):
         """Return transaction data
@@ -391,7 +393,7 @@ class FantasySport(object):
         return response
         
     def get_all_completed_leagues_transactions(self, league_keys):
-        """Return all transactions form multiple leagues
+        """Return all transactions from multiple leagues
         >>>yfs.get_all_completed_leagues_transactions(['league_key1', 'leaguekey2'])
         """
         
@@ -399,20 +401,74 @@ class FantasySport(object):
         response = self._get(uri)
         return response
         
+    def get_teams_pending_transactions(self, league_key, team_key)
+        """Return pending transactions for a specific team
+        >>> yfs.get_teams_pending_transactions('league_key', 'team_key')
+        """
+        
+        uri = self._build_uri(None, 'league/{0}'.format(league_key), sub='transactions')
+        uri += ';types=waiver,pending_trade;team_key={1}'.format(team_key)
+        
+        response = self._get(uri)
+        return response
+        
         
     ### PUT Functions
         
-    def edit_waivers(self, transaction_keys, transactions):
+    def edit_waivers(self, roster):
         """
-        >>> from fantasy_sport import Roster, Player
-        >>> p1 = Player('242.p.8332','WR')
-        >>> p2 = Player('242.p.8334','WL')
-        >>> roster = Roster([p1, p2], date='2015-01-11')
-        >>> ysf.edit_waivers(['238.l.627062'], roster)
+        >>> from fantasy_sport import Transaction
+        >>> roster = Transaction(type='waiver', 'transaction_key', waiver_priority='1', faab_bid='10')
+        >>> yfs.edit_waivers(roster)
         """
-        uri = self._build_uri(None, team_keys, sub='roster/players')
-        uri = 'team/{0}'.format(uri)
+        uri = self._build_uri(None, None, sub='transaction')
 
         response = self._put(uri, roster)
+        
+    def trade_response(self, roster):
+        """
+        Accept OR decline a trade proposal
+        >>> from fantasy_sport import Transaction
+        >>> roster = Transaction(type='pending_trade', 'transaction_key', action='accept', trade_note='Great offer!')
+        >>> yfs.trade_response(roster)
+        """
+        uri = self._build_uri(None, None, sub='transaction')
+
+        response = self._put(uri, roster)
+        
+    def commissioner_trade_response(self, roster):
+        """
+        Allow or disallow trade ONLY if commissioner of league
+        >>> from fantasy_sport import Transaction
+        >>> roster = Transaction(type='pending_trade', 'transaction_key', action='allow')
+        >>> yfs.commissioner_trade_response(roster)
+        """
+        uri = self._build_uri(None, None, sub='transaction')
+
+        response = self._put(uri, roster)
+        
+    def vote_against_trade(self, roster):
+        """
+        Vote against a trade proposal
+        >>> from fantasy_sport import Transaction
+        >>> roster = Transaction(type='pending_trade', 'transaction_key', action='vote_against', voter_team_key='team_key')
+        >>> yfs.vote_against_trade(roster)
+        """
+        uri = self._build_uri(None, None, sub='transaction')
+
+        response = self._put(uri, roster)
+        
+    ### POST Functions
+    
+    def make_roster_move(self, league_keys, roster)
+        """
+        Add, drop, or add & drop a player
+        >>> from fantasy_sport import Transaction
+        >>> roster = Transaction(type='add/drop', add_player_key='346.p.9171')
+        >>> yfs.make_roster_move(['346.l.1328'], roster)
+        """
+        uri = self._build_uri(None, league_keys, sub='roster')
+        uri = 'league/{0}'.format(uri)
+        
         
         

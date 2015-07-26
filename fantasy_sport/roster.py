@@ -133,13 +133,13 @@ class Transaction(Base):
         - action
     """
     
-    def __init__(self, transaction_key, type, waiver_priority=None, faab_bid=None, action=None, trade_note=None, voter_team_key=None):
+    def __init__(self, type, transaction_key=None, waiver_priority=None, faab_bid=None, action=None, trade_note=None, voter_team_key=None):
         """Initialize a Transaction object
         """
         super(Base, self).__init()
         
-        self.transaction_key = transaction_key
         self.type = type
+        self.transaction_key = transaction_key
         self.waiver_priority = waiver_priority
         self.faab_bid = faab_bid
         self.action = action
@@ -155,8 +155,9 @@ class Transaction(Base):
         content = ctree.Element('fantasy_content')
         transaction = ctree.SubElement(content, 'transaction')
 
-        transaction_key = ctree.SubElement(transaction, 'transaction_key')
-        transaction_key.text = self.transaction_key
+        if transaction_key:
+            transaction_key = ctree.SubElement(transaction, 'transaction_key')
+            transaction_key.text = self.transaction_key
 
         type = ctree.SubElement(transaction, 'type')
         type.text = self.type
