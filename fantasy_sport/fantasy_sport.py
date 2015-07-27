@@ -469,6 +469,18 @@ class FantasySport(object):
         """
         uri = self._build_uri(None, league_keys, sub='roster')
         uri = 'league/{0}'.format(uri)
+    
+    def add_player(self, player_key, team_key)
+        """
+        Add a player to your team
+        Only two things to specify are player key and team key
+        yfs.add_player('346.p.9171', '346.l.1328.t.12')
+        """
+        
+        self.player_key = player_key
+        self.team_key = team_key
+        
+        roster = Transaction(type='add', player_key=self.player_key, team_key=self.team_key)
         
         
         
