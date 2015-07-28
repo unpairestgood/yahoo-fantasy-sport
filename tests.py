@@ -254,6 +254,12 @@ class TestFantasySportTransaction(unittest.TestCase):
         logging.debug(pretty_json(response.content))
         self.assertEqual(response.status_code, 200)
         
+    def test_add_player(self,):
+        response = self.yfs.add_player('346.p.9723', '346.l.1328.t.12', ['346.l.1328'])
+        logging.debug(pretty_xml(response.content))
+        self.assertEqual(response.status_code, 200)
+        
+        
 class TestFantasySportRoster(unittest.TestCase):
 
     def setUp(self,):

@@ -12,7 +12,7 @@ class Base(object):
     """
 
     @abc.abstractmethod
-    def xml_builder(self,):
+    def xml_builder_add(self,):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -28,7 +28,7 @@ class Base(object):
         """Return object as a xml string
         """
         return ctree.tostring(self.xml)
-        
+    """    
     @abc.abstractmethod
     def xml_builder_waiver(self,):
         raise NotImplementedError
@@ -52,7 +52,7 @@ class Base(object):
     @abc.abstractmethod
     def xml_builder_pending_trade_post(self,):
         raise NotImplementedError
-
+   """
 
 class Roster(Base):
     """Roster class
@@ -159,10 +159,8 @@ class Transaction(Base):
         - action
     """
     
-    def __init__(self, type, transaction_key=None, waiver_priority=None, faab_bid=None, 
-                action=None, trade_note=None, voter_team_key=None
-                player_key=None, team_key=None,
-        ):
+    #def __init__(self, type, transaction_key=None, waiver_priority=None, faab_bid=None, action=None, trade_note=None, voter_team_key=None, player_key=None, team_key=None):
+    def __init__(self, type=None, player_key=None, team_key=None,):
         """Initialize a Transaction object
          - types
          -- PUT: waiver, pending_trade
@@ -172,25 +170,24 @@ class Transaction(Base):
         super(Base, self).__init__()
         
         self.type = type
-        self.transaction_key = transaction_key
-        self.waiver_priority = waiver_priority
-        self.faab_bid = faab_bid
-        self.action = action
-        self.trade_note = trade_note
-        self.voter_team_key = voter_team_key
+        #self.transaction_key = transaction_key
+        #self.waiver_priority = waiver_priority
+        #self.faab_bid = faab_bid
+        #self.action = action
+        #self.trade_note = trade_note
+        #self.voter_team_key = voter_team_key
         self.player_key = player_key
         self.team_key = team_key
         
-        types = {'waiver': xml_builder_waiver, 'pending_trade': xml_builder_pending_trade_put,
-                'add': xml_builder_add, 'drop': xml_builder_drop, 'add/drop': xml_builder_adddrop
-        }
+        #types = {'waiver': xml_builder_waiver, 'pending_trade': xml_builder_pending_trade_put, 'add': xml_builder_add, 'drop': xml_builder_drop, 'add/drop': xml_builder_adddrop}
         
-        if self.type in types:
-            types[self.type](
-        else:
-            raise Exception("Method %s not implemented" % self.type
-            
-        self.xml_builder()
+        #if self.type in types:
+            #types[self.type]()
+        #else:
+            #raise Exception("Method %s not implemented" % self.type
+        
+        self.xml_builder_add()    
+        #self.xml_builder()
         #self.json_builder()
         
     def xml_builder_add(self,):
@@ -203,7 +200,7 @@ class Transaction(Base):
         type = ctree.SubElement(transaction, 'type')
         type.text = self.type
         
-        player = ctreeSubElement(transaction, 'player')
+        player = ctree.SubElement(transaction, 'player')
         
         player_key = ctree.SubElement(player, 'player_key')
         player_key.text = self.player_key

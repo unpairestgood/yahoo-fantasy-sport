@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from fantasy_sport.roster import Player, Roster, Transaction
 
 
 class FantasySport(object):
@@ -43,14 +44,28 @@ class FantasySport(object):
         - uri : roster resource uri
         - roster : roster object
         """
-        #headers = {'Content-Type':'application/{0}'.self.fmt}
         headers = {'Content-Type':'application/{0}'.format(self.fmt)}
         data = roster.to_json() if self.fmt == 'json' else roster.to_xml() # Getting roster xml or json according to self.fmt
 
         response = self.oauth.session.put(uri, data=data, headers=headers)
         print response.status_code
         print response.reason
-
+        
+        return response
+        
+    def _post(self, uri, transaction):
+        """
+        - uri : roster resource uri
+        - transaction : roster object
+        """
+        headers = {'Content-Type':'application/xml'}
+        data = transaction.to_xml()
+        
+        response = self.oauth.session.post(uri, data=data, headers=headers)
+        print response.status_code
+        print response.reason
+        
+        return response
 
     def _add_login(self, uri):
         """Add users;use_login=1/ to the uri
@@ -72,7 +87,7 @@ class FantasySport(object):
         else:
            uri = '{0}'.format(self._format_resources_key(keys))
 
-        if sub and isinstance(sub, str) :
+        if sub and isinstance(sub, str):
             uri += "/{0}".format(sub)
         if sub and not isinstance(sub, str):
             uri += ";out={0}".format(','.join([e for e in sub]))
@@ -401,7 +416,7 @@ class FantasySport(object):
         response = self._get(uri)
         return response
         
-    def get_teams_pending_transactions(self, league_key, team_key)
+    def get_teams_pending_transactions(self, league_key, team_key):
         """Return pending transactions for a specific team
         >>> yfs.get_teams_pending_transactions('league_key', 'team_key')
         """
@@ -424,6 +439,7 @@ class FantasySport(object):
         uri = self._build_uri(None, None, sub='transaction')
 
         response = self._put(uri, roster)
+        return response
         
     def trade_response(self, roster):
         """
@@ -435,6 +451,7 @@ class FantasySport(object):
         uri = self._build_uri(None, None, sub='transaction')
 
         response = self._put(uri, roster)
+        return response
         
     def commissioner_trade_response(self, roster):
         """
@@ -446,6 +463,7 @@ class FantasySport(object):
         uri = self._build_uri(None, None, sub='transaction')
 
         response = self._put(uri, roster)
+        return response
         
     def vote_against_trade(self, roster):
         """
@@ -457,10 +475,11 @@ class FantasySport(object):
         uri = self._build_uri(None, None, sub='transaction')
 
         response = self._put(uri, roster)
+        return response
         
     ### POST Functions
     
-    def make_roster_move(self, league_keys, roster)
+    def make_roster_move(self, league_keys, roster):
         """
         Add, drop, or add & drop a player
         >>> from fantasy_sport import Transaction
@@ -469,18 +488,23 @@ class FantasySport(object):
         """
         uri = self._build_uri(None, league_keys, sub='roster')
         uri = 'league/{0}'.format(uri)
+        return response 
     
-    def add_player(self, player_key, team_key)
+    def add_player(self, player_key, team_key, league_key):
         """
         Add a player to your team
-        Only two things to specify are player key and team key
-        yfs.add_player('346.p.9171', '346.l.1328.t.12')
+        Three things to specify are player key, team key, league key
+        yfs.add_player('346.p.9171', '346.l.1328.t.12', ['346.l.1328'])
         """
+        uri = self._build_uri(None, league_key, sub='transactions')
+        uri = 'league/{0}'.format(uri)
         
-        self.player_key = player_key
-        self.team_key = team_key
+        print uri
         
-        roster = Transaction(type='add', player_key=self.player_key, team_key=self.team_key)
+        transaction = Transaction('add', player_key, team_key)
+        
+        response = self._post(uri, transaction)
+        return response
         
         
         
