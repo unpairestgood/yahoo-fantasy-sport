@@ -44,8 +44,9 @@ class FantasySport(object):
         - uri : roster resource uri
         - roster : roster object
         """
-        headers = {'Content-Type':'application/{0}'.format(self.fmt)}
-        data = roster.to_json() if self.fmt == 'json' else roster.to_xml() # Getting roster xml or json according to self.fmt
+        headers = {'Content-Type':'application/xml'}
+        #data = roster.to_json() if self.fmt == 'json' else roster.to_xml() # Getting roster xml or json according to self.fmt
+        data = transaction.to_xml()
 
         response = self.oauth.session.put(uri, data=data, headers=headers)
         print response.status_code
@@ -430,51 +431,82 @@ class FantasySport(object):
         
     ### PUT Functions
         
-    def edit_waivers(self, roster):
+    def edit_waivers(self, transaction_key, priority, faab_bid):
         """
-        >>> from fantasy_sport import Transaction
-        >>> roster = Transaction(type='waiver', 'transaction_key', waiver_priority='1', faab_bid='10')
-        >>> yfs.edit_waivers(roster)
+        Adjust the priority or faab_bid of a pending waiver
+        >>> from fantasy_sport import TransactionPut
+        >>> yfs.edit_waivers(transaction_key='248.l.55438.w.c.2_6093', priority='1', faab_bid='20')
         """
         uri = self._build_uri(None, None, sub='transaction')
+        
+        transaction = Transaction(type='waiver', transaction_key=transaction_key, priority=priority, faab_bid=faab_bid)
 
-        response = self._put(uri, roster)
+        response = self._put(uri, transaction)
         return response
         
-    def trade_response(self, roster):
+    def accept_trade(self, transaction_key, trade_note):
         """
-        Accept OR decline a trade proposal
-        >>> from fantasy_sport import Transaction
-        >>> roster = Transaction(type='pending_trade', 'transaction_key', action='accept', trade_note='Great offer!')
-        >>> yfs.trade_response(roster)
+        Accept a trade
+        >>> from fantasy_sport import TransactionPut
+        >>> yfs.accept_trade(transaction_key='248.l.55438.pt.11', trade_note='Great offer')
         """
         uri = self._build_uri(None, None, sub='transaction')
+        
+        transaction = Transaction(type='pending_trade', transaction_key=transaction_key, action='accept', trade_note=trade_note)
 
-        response = self._put(uri, roster)
+        response = self._put(uri, transaction)
         return response
         
-    def commissioner_trade_response(self, roster):
+    def reject_trade(self, transaction_key, trade_note):
         """
-        Allow or disallow trade ONLY if commissioner of league
-        >>> from fantasy_sport import Transaction
-        >>> roster = Transaction(type='pending_trade', 'transaction_key', action='allow')
-        >>> yfs.commissioner_trade_response(roster)
+        Reject a trade
+        >>> from fantasy_sport import TransactionPut
+        >>> yfs.reject_trade(transaction_key='248.l.55438.pt.11', trade_note='Terrible offer')
         """
         uri = self._build_uri(None, None, sub='transaction')
+        
+        transaction = Transaction(type='pending_trade', transaction_key=transaction_key, action='reject', trade_note=trade_note)
 
-        response = self._put(uri, roster)
+        response = self._put(uri, transaction)
         return response
         
-    def vote_against_trade(self, roster):
+    def allow_trade(self, transaction_key):
         """
-        Vote against a trade proposal
-        >>> from fantasy_sport import Transaction
-        >>> roster = Transaction(type='pending_trade', 'transaction_key', action='vote_against', voter_team_key='team_key')
-        >>> yfs.vote_against_trade(roster)
+        Allow a trade
+        >>> from fantasy_sport import TransactionPut
+        >>> yfs.allow_trade(transaction_key='248.l.55438.pt.11')
         """
         uri = self._build_uri(None, None, sub='transaction')
+        
+        transaction = Transaction(type='pending_trade', transaction_key=transaction_key, action='allow')
 
-        response = self._put(uri, roster)
+        response = self._put(uri, transaction)
+        return response
+        
+    def disallow_trade(self, transaction_key):
+        """
+        Disallow a trade
+        >>> from fantasy_sport import TransactionPut
+        >>> yfs.disallow_trade(transaction_key='248.l.55438.pt.11')
+        """
+        uri = self._build_uri(None, None, sub='transaction')
+        
+        transaction = TransactionPut(type='pending_trade', transaction_key=transaction_key, action='disallow')
+
+        response = self._put(uri, transaction)
+        return response
+        
+    def vote_against_trade(self, transaction_key, voter_team_key):
+        """
+        Vote against a trade
+        >>> from fantasy_sport import TransactionPut
+        >>> yfs.vote_against_trade(transaction_key='248.l.55438.t.2', voter_team_key='248.l.55438.t.2')
+        """
+        uri = self._build_uri(None, None, sub='transaction')
+        
+        transaction = Transaction(type='pending_trade', transaction_key=transaction_key, action='vote_against', voter_team_key=voter_team_key)
+
+        response = self._put(uri, transaction)
         return response
         
     ### POST Functions
@@ -490,7 +522,7 @@ class FantasySport(object):
         uri = 'league/{0}'.format(uri)
         return response 
     
-    def add_player(self, player_key, team_key, league_key):
+    def add_player(self, player_keys, team_key, league_key):
         """
         Add a player to your team
         Three things to specify are player key, team key, league key
@@ -499,12 +531,14 @@ class FantasySport(object):
         uri = self._build_uri(None, league_key, sub='transactions')
         uri = 'league/{0}'.format(uri)
         
-        print uri
         
-        transaction = Transaction('add', player_key, team_key)
+        p1 = Player(player_keys, type='add', destination_team_key=team_key)
+        transaction = Transaction('add', players=[p1])
         
         response = self._post(uri, transaction)
         return response
+        
+
         
         
         
