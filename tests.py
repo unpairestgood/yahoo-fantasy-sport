@@ -371,6 +371,29 @@ class TestTransactionPost(unittest.TestCase):
         self.transaction = Transaction('add', players=[self.p1])
         expected = b'<fantasy_content><transaction><type>add</type><player><player_key>248.p.522</player_key><transaction_data><type>add</type><destination_team_key>248.l.1328.t.12</destination_team_key></transaction_data></player></transaction></fantasy_content>'
         logging.debug(pretty_xml(self.transaction.to_xml()))
-        self.assertEqual(expected, self.transaction.to_xml())           
+        self.assertEqual(expected, self.transaction.to_xml())
+        
+    def test_drop_player(self,):
+        self.p1 = Player('248.p.522', type='drop', source_team_key='248.l.1328.t.12')
+        self.transaction = Transaction('drop', players=[self.p1])
+        expected = b'<fantasy_content><transaction><type>drop</type><player><player_key>248.p.522</player_key><transaction_data><type>drop</type><source_team_key>248.l.1328.t.12</source_team_key></transaction_data></player></transaction></fantasy_content>'
+        logging.debug(pretty_xml(self.transaction.to_xml()))
+        self.assertEqual(expected, self.transaction.to_xml())
+        
+    def test_adddrop_player(self,):
+        self.p1 = Player('248.p.522', type='add', destination_team_key='248.l.1328.t.12')
+        self.p2 = Player('248.p.523', type='drop', source_team_key='248.l.1328.t.12')
+        self.transaction = Transaction('add/drop', players=[self.p1, self.p2])
+        expected = b'<fantasy_content><transaction><type>add/drop</type><players><player><player_key>248.p.522</player_key><transaction_data><type>add</type><destination_team_key>248.l.1328.t.12</destination_team_key></transaction_data></player><player><player_key>248.p.523</player_key><transaction_data><type>drop</type><source_team_key>248.l.1328.t.12</source_team_key></transaction_data></player></players></transaction></fantasy_content>'
+        logging.debug(pretty_xml(self.transaction.to_xml()))
+        self.assertEqual(expected, self.transaction.to_xml())
+        
+    def test_propose_trade(self,):
+        self.p1 = Player('248.p.4130', type='pending_trade', source_team_key='248.l.55438.t.11', destination_team_key='248.l.55438.t.4')
+        self.p2 = Player('248.p.2415', type='pending_trade', source_team_key='248.l.55438.t.4', destination_team_key='248.l.55438.t.11')
+        self.transaction = Transaction('pending_trade', players=[self.p1, self.p2], trader_team_key ='248.l.55438.t.11', tradee_team_key='248.l.55438.t.4', trade_note='Yo yo yo yo yo!!!')
+        expected = b'<fantasy_content><transaction><type>pending_trade</type><trader_team_key>248.l.55438.t.11</trader_team_key><tradee_team_key>248.l.55438.t.4</tradee_team_key><trade_note>Yo yo yo yo yo!!!</trade_note><players><player><player_key>248.p.4130</player_key><transaction_data><type>pending_trade</type><source_team_key>248.l.55438.t.11</source_team_key><destination_team_key>248.l.55438.t.4</destination_team_key></transaction_data></player><player><player_key>248.p.2415</player_key><transaction_data><type>pending_trade</type><source_team_key>248.l.55438.t.4</source_team_key><destination_team_key>248.l.55438.t.11</destination_team_key></transaction_data></player></players></transaction></fantasy_content>'
+        logging.debug(pretty_xml(self.transaction.to_xml()))
+        self.assertEqual(expected, self.transaction.to_xml())       
         
 

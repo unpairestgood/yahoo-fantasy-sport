@@ -529,11 +529,27 @@ class FantasySport(object):
         yfs.add_player('346.p.9171', '346.l.1328.t.12', ['346.l.1328'])
         """
         uri = self._build_uri(None, league_key, sub='transactions')
-        uri = 'league/{0}'.format(uri)
+        uri = 'league/{2}'.format(uri)
         
         
         p1 = Player(player_keys, type='add', destination_team_key=team_key)
         transaction = Transaction('add', players=[p1])
+        
+        response = self._post(uri, transaction)
+        return response
+        
+    def drop_player(self, player_keys, team_key, league_key):
+        """
+        Drop a player from your team
+        Three things to specify are player key, team key, league key
+        yfs.drop_player('346.p.9171', '346.l.1328.t.12', ['346.l.1328'])
+        """
+        uri = self._build_uri(None, league_key, sub='transactions')
+        uri = 'league/{2}'.format(uri)
+        
+        
+        p1 = Player(player_keys, type='drop', source_team_key=team_key)
+        transaction = Transaction('drop', players=[p1])
         
         response = self._post(uri, transaction)
         return response

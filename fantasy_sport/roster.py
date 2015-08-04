@@ -14,6 +14,10 @@ class Base(object):
     @abc.abstractmethod
     def xml_builder_player(self,):
         raise NotImplementedError
+        
+    @abc.abstractmethod
+    def xml_builder_player_proposetrade(self,):
+        raise NotImplementedError
     
     @abc.abstractmethod
     def xml_builder_put(self,):
@@ -123,8 +127,10 @@ class Player(Base):
         self.destination_team_key = destination_team_key
         self.source_team_key = source_team_key
         
-        
-        self.xml_builder_player()
+        if self.type is 'pending_trade':
+            self.xml_builder_player_proposetrade()
+        else:
+            self.xml_builder_player()
 
     def xml_builder_player(self,):
         """Convert object into a xml object
@@ -147,9 +153,27 @@ class Player(Base):
             source_team_key = ctree.SubElement(transaction_data, 'source_team_key')
             source_team_key.text = self.source_team_key
         
-        #for key in sorted(vars(self).keys()):
-            #tag = ctree.SubElement(player, key)
-            #tag.text = vars(self).get(key)
+        self.xml = player
+        return self.xml
+        
+    def xml_builder_player_proposetrade(self,):
+        """Convert player object into xml object
+        """
+        player = ctree.Element('player')
+        
+        player_key = ctree.SubElement(player, 'player_key')
+        player_key.text = self.player_key
+        
+        transaction_data = ctree.SubElement(player, 'transaction_data')
+        
+        type = ctree.SubElement(transaction_data, 'type')
+        type.text = self.type
+        
+        source_team_key = ctree.SubElement(transaction_data, 'source_team_key')
+        source_team_key.text = self.source_team_key
+        
+        destination_team_key = ctree.SubElement(transaction_data, 'destination_team_key')
+        destination_team_key.text = self.destination_team_key
         
         self.xml = player
         return self.xml
@@ -240,15 +264,19 @@ class Transaction(Base):
         content = ctree.Element('fantasy_content')
         transaction = ctree.SubElement(content, 'transaction')
          
-        transaction_key = ctree.SubElement(transaction, 'transaction_key')
-        transaction_key.text = self.transaction_key
-         
         type = ctree.SubElement(transaction, 'type')
         type.text = self.type
         
+        if self.faab_bid:
+            faab_bid = ctree.SubElement('faab_bid')
+            faab_bid.text = self.faab_bid
+        
         players = ctree.SubElement(transaction, 'players')
-        for player in self.players :
+        
+        for player in self.players:
             players.append(player.xml)
+            
+        self.xml = content
             
     def xml_builder_proposetrade(self,):
         """Convert into xml object
@@ -256,26 +284,37 @@ class Transaction(Base):
         content = ctree.Element('fantasy_content')
         transaction = ctree.SubElement(content, 'transaction')
          
-        transaction_key = ctree.SubElement(transaction, 'transaction_key')
-        transaction_key.text = self.transaction_key
-         
         type = ctree.SubElement(transaction, 'type')
         type.text = self.type
         
+        trader_team_key = ctree.SubElement(transaction, 'trader_team_key')
+        trader_team_key.text = self.trader_team_key
+        
+        tradee_team_key = ctree.SubElement(transaction, 'tradee_team_key')
+        tradee_team_key.text = self.tradee_team_key
+        
+        if self.trade_note:
+            trade_note = ctree.SubElement(transaction, 'trade_note')
+            trade_note.text = self.trade_note
+        
         players = ctree.SubElement(transaction, 'players')
-        for player in self.players :
+        
+        for player in self.players:
             players.append(player.xml)
+            
+        self.xml = content
             
     def xml_builder_player(self,):
         return None
+        
+    def xml_builder_player_proposetrade(self,):
+        return None
 
-
-         
-               
+           
         
     def __init__(self, type, transaction_key=None, priority=None, faab_bid=None,
-                 action=None, trade_note=None, voter_team_key=None,
-                 players=None
+                 action=None, trade_note=None, voter_team_key=None, players=None,
+                 trader_team_key=None, tradee_team_key=None
                  ):
         """Initialize a transaction object for PUT functions"""
         super(Base, self).__init__()
@@ -288,6 +327,8 @@ class Transaction(Base):
         self.trade_note = trade_note
         self.voter_team_key = voter_team_key
         self.players=players
+        self.trader_team_key = trader_team_key
+        self.tradee_team_key = tradee_team_key
         
         types = {'waiver': self.xml_builder_put, 'pending_trade': self.xml_builder_put,
                 'add': self.xml_builder_addordrop, 'drop': self.xml_builder_addordrop, 'add/drop': self.xml_builder_adddrop
