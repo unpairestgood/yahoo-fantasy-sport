@@ -318,23 +318,45 @@ class TestRoster(unittest.TestCase):
 class TestPaulRoster(unittest.TestCase):    
     
     def setUp(self,):
-        players = [Player('346.p.8171', 'OF'), Player('346.p.9719','BN')]
-        self.roster = Roster(players, date='2015-07-21')
-        
         oauth = OAuth1(None, None, from_file='oauth.json', base_url='http://fantasysports.yahooapis.com/fantasy/v2/')
-        self.yfs = FantasySport(oauth) 
-    
+        self.yfs = FantasySport(oauth)
     
     def test_roster_fo_realz(self,):
+        players = [Player('346.p.8171', 'OF'), Player('346.p.9719','BN')]
+        self.roster = Roster(players, date='2015-07-21')
         response = self.yfs.set_roster_players(['346.l.1328.t.12'], self.roster)
         logging.debug(pretty_xml(response.content))
+        self.assertEqual(response.status_code, 201)
+        
+    def test_add_with_waiver(self,):
+        response = self.yfs.add_and_drop_player('346.p.8644', '346.p.9723', '346.l.1328.t.12', '346.l.1328', faab_bid='20')
+        #logging.debug(pretty_xml(response.content))
+        self.assertEqual(response.status_code, 201)
+        
+    def test_edit_waiver(self,):
+        response = self.yfs.edit_waiver('346.l.1328.w.c.12_8644_9723', '1', faab_bid='40')
+        self.assertEqual(response.status_code, 201)
+        
+    def test_get_pending_transactions(self,):
+        response = self.yfs.get_teams_pending_transactions('346.l.1328', '346.l.1328.t.12')
+        #logging.debug(pretty_xml(response.content))
+        print response.content
         self.assertEqual(response.status_code, 200)
+    
+    def test_reject_trade(self,):
+        response = self.yfs.reject_trade('346.l.1328.pt.61', 'what a terrible, horrible offer. Im so insulted')
+        self.assertEqual(response.status_code, 201)
+        
+    def test_delete_waiver(self,):
+        response = self.yfs.delete_waiver('346.l.1328.w.c.12_8922_9723', '1', '5')
+        self.assertEqual(response.status_code, 201)
+
 
         
 class TestTransactionPut(unittest.TestCase):
         
 
-    def test_edit_waivers(self,):
+    def test_edit_waiver(self,):
         self.transaction = Transaction(type='waiver', transaction_key='248.l.55438.w.c.2_6093', priority='1', faab_bid='20')
         expected = b'<fantasy_content><transaction><transaction_key>248.l.55438.w.c.2_6093</transaction_key><type>waiver</type><waiver_priority>1</waiver_priority><faab_bid>20</faab_bid></transaction></fantasy_content>'
         logging.debug(pretty_xml(self.transaction.to_xml()))
@@ -391,7 +413,7 @@ class TestTransactionPost(unittest.TestCase):
     def test_propose_trade(self,):
         self.p1 = Player('248.p.4130', type='pending_trade', source_team_key='248.l.55438.t.11', destination_team_key='248.l.55438.t.4')
         self.p2 = Player('248.p.2415', type='pending_trade', source_team_key='248.l.55438.t.4', destination_team_key='248.l.55438.t.11')
-        self.transaction = Transaction('pending_trade', players=[self.p1, self.p2], trader_team_key ='248.l.55438.t.11', tradee_team_key='248.l.55438.t.4', trade_note='Yo yo yo yo yo!!!')
+        self.transaction = Transaction('pending_trade', players=[self.p1, self.p2], trader_team_key ='248.l.55438.t.11', tradee_team_key='248.l.55438.t.4', trade_note='Yo yo yo yo yo!!!', propose_trade=True)
         expected = b'<fantasy_content><transaction><type>pending_trade</type><trader_team_key>248.l.55438.t.11</trader_team_key><tradee_team_key>248.l.55438.t.4</tradee_team_key><trade_note>Yo yo yo yo yo!!!</trade_note><players><player><player_key>248.p.4130</player_key><transaction_data><type>pending_trade</type><source_team_key>248.l.55438.t.11</source_team_key><destination_team_key>248.l.55438.t.4</destination_team_key></transaction_data></player><player><player_key>248.p.2415</player_key><transaction_data><type>pending_trade</type><source_team_key>248.l.55438.t.4</source_team_key><destination_team_key>248.l.55438.t.11</destination_team_key></transaction_data></player></players></transaction></fantasy_content>'
         logging.debug(pretty_xml(self.transaction.to_xml()))
         self.assertEqual(expected, self.transaction.to_xml())       

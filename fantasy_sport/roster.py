@@ -127,7 +127,7 @@ class Player(Base):
         self.destination_team_key = destination_team_key
         self.source_team_key = source_team_key
         
-        if self.type is 'pending_trade':
+        if self.type == 'pending_trade':
             self.xml_builder_player_proposetrade()
         else:
             self.xml_builder_player()
@@ -202,12 +202,45 @@ class Player(Base):
         
         
 class Transaction(Base):
-    """transaction class for PUT functions
+    """transaction class
     -- edit waiver
     -- allow/disallow trades
     -- allow/disallow against trades (commissioner only)
     -- vote against trades
+    -- add, drop, or add/drop a player
+    -- propose trades
     """
+    def __init__(self, type, transaction_key=None, priority=None, faab_bid=None,
+                 action=None, trade_note=None, voter_team_key=None, players=None,
+                 trader_team_key=None, tradee_team_key=None, propose_trade=False
+        ):
+        """Initialize a transaction object for PUT functions"""
+        super(Base, self).__init__()
+        
+        self.type = type
+        self.transaction_key = transaction_key
+        self.priority = priority
+        self.faab_bid = faab_bid
+        self.action = action
+        self.trade_note = trade_note
+        self.voter_team_key = voter_team_key
+        self.players=players
+        self.trader_team_key = trader_team_key
+        self.tradee_team_key = tradee_team_key
+        self.propose_trade = propose_trade
+        
+        types = {'waiver': self.xml_builder_put, 'pending_trade': self.xml_builder_put,
+                'add': self.xml_builder_addordrop, 'drop': self.xml_builder_addordrop, 'add/drop': self.xml_builder_adddrop
+        }
+        
+        if self.propose_trade:
+            self.xml_builder_proposetrade()
+        elif self.type in types:
+            types[self.type]()
+        else:
+            raise Exception("Method %s not implemented" % self.type)
+    
+    
     def xml_builder_put(self,):
         """Convert into xml object
         """
@@ -268,7 +301,7 @@ class Transaction(Base):
         type.text = self.type
         
         if self.faab_bid:
-            faab_bid = ctree.SubElement('faab_bid')
+            faab_bid = ctree.SubElement(transaction, 'faab_bid')
             faab_bid.text = self.faab_bid
         
         players = ctree.SubElement(transaction, 'players')
@@ -309,36 +342,4 @@ class Transaction(Base):
         
     def xml_builder_player_proposetrade(self,):
         return None
-
-           
         
-    def __init__(self, type, transaction_key=None, priority=None, faab_bid=None,
-                 action=None, trade_note=None, voter_team_key=None, players=None,
-                 trader_team_key=None, tradee_team_key=None
-                 ):
-        """Initialize a transaction object for PUT functions"""
-        super(Base, self).__init__()
-        
-        self.type = type
-        self.transaction_key = transaction_key
-        self.priority = priority
-        self.faab_bid = faab_bid
-        self.action = action
-        self.trade_note = trade_note
-        self.voter_team_key = voter_team_key
-        self.players=players
-        self.trader_team_key = trader_team_key
-        self.tradee_team_key = tradee_team_key
-        
-        types = {'waiver': self.xml_builder_put, 'pending_trade': self.xml_builder_put,
-                'add': self.xml_builder_addordrop, 'drop': self.xml_builder_addordrop, 'add/drop': self.xml_builder_adddrop
-        }
-        
-        if self.type is 'pending_trade' and self.tradee_team_key:
-            self.xml_builder_proposetrade()
-        elif self.type in types:
-            types[self.type]()
-        else:
-            raise Exception("Method %s not implemented" % self.type)
-          
-
