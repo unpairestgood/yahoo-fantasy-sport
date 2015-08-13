@@ -383,7 +383,7 @@ class FantasySport(object):
         >>> yfs.get_roster_players(['238.l.627062'])
         """
         
-        uri = self._build_uri(None, team_keys, sub='roster/players')
+        uri = self._build_uri(None, team_keys, sub='roster')
         uri = 'team/{0}'.format(uri) # Done to avoid having 'team=238.l.627062', which doesn't work for this resource
 
         if week: 

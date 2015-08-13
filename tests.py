@@ -267,7 +267,7 @@ class TestFantasySportRoster(unittest.TestCase):
         self.yfs = FantasySport(oauth)
 
     def test_get_roster_players(self,):
-        response = self.yfs.get_roster_players(['346.l.1328.t.12'])
+        response = self.yfs.get_roster_players(['346.l.1328.t.12'], date='2015-08-13')
         logging.debug(pretty_json(response.content))
         self.assertEqual(response.status_code, 200)
         
