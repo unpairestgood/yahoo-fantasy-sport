@@ -9,8 +9,14 @@ gameID = 346
 leagueID = 1328
 teamID = 12
 playerID = 8781
-input_date = '2015-08-13'
+input_date = '2015-08-17'
 ###
+
+new_optimal_lineup = []
+ineligible = set()
+
+position_dict = {'C': 0, '1B': 1, '2B': 2, '3B': 3, 'SS': 4,
+                    'MI': 5, 'CI': 6, 'OF': 7, 'Util': 8}
 
 today = False
 current_date = str(datetime.date.today())
@@ -75,7 +81,8 @@ def parse_set_roster(data):
         #include current position of player
         current_position = player_info['player'][1]['selected_position'][1]['position']
         
-        #include if has game, and if running on today's date, then if starting
+        #include if starting and editable.
+        #Default is true, only make false if known false
         starting = True
         editable = True
         
@@ -90,10 +97,8 @@ def parse_set_roster(data):
                     
             except TypeError:
                 continue
-                    
-        #tuple of information for a player
-        #player = (name, (current_position, positions))
         
+        #Create tuple of all relevant
         player = (name, ((current_position, positions), (starting, editable)))
         
         #append to list based on batter or pitcher
@@ -107,60 +112,124 @@ def parse_set_roster(data):
        
     return (batters, pitchers)
     
-"""    
-#def get_player_projections(batter_names, pitcher_names):
-def get_player_projections():
+   
+def get_player_projections(batter_names, pitcher_names):
     #Connect to Rudy's db and get projections
+    #For now, use dummy values
     
     batters_proj = []
     pitchers_proj = []
     
     batters_projection_list = [30,20,10,25,15,5,6,7,13,19,40,34,14,26,33]
+    pitchers_projection_list = [0,2,0,0,10,0,0,4,0,3]
     
-    for i in batter_names:
+    for (i, _) in enumerate(batter_names):
         batters_proj.append(batters_projection_list[i])
+        
+    for (i, _) in enumerate(pitcher_names):
+        pitchers_proj.append(pitchers_projection_list[i])
     
     return (batters_proj, pitchers_proj)
     
-#def optimal_batting(batters):
-def optimal_batting():
+def optimal_batting(batters):
     #Finds optimal hitting lineup
     
-    position_list = ['C', '1B', '2B']
+    #batters = ((name, ((current_pos, eligible_positions), (starting, editable))), projection)
+    position_list = ['C','1B','2B','3B','SS','MI','CI','OF','OF','OF','OF','Util','Util']
     
-    #Batters = (name, ((current_pos, positions), projection)
+    #Handle any player that cannot be edited
+    for ((name, ((current_position, eligible_positions), (starting, editable))), projection) in batters:
+        if not editable:
+            new_optimal_lineup.insert(position_dict[current_position],(name, projection))
+            if current_position == 'OF' or 'Util':
+                position_dict[current_position] += 1
+            position_list.remove(current_position)
+            ineligible.add(name)
     
-    for i in position_list:
-        eligible_players = [(name, proj) for (name, ((current_pos, elig_pos), projection) in inputs if i in elig_pos]
+    #For all positions remaining that do not have an uneditable player in them
+    for pos in position_list:
+        eligible_players = [(name, projection) for ((name, ((current_pos, elig_pos), (starting, editable))), projection) in batters
+                            if pos in elig_pos if starting if name not in ineligible]
+        print '%s: %s' % (pos, eligible_players)
+        qt = optimal_batting_position(eligible_players, pos)
         
+    print new_optimal_lineup
+    print 'ineligible %s' % ineligible
+        
+    return None
+    
+def optimal_batting_position(eligible_players, position):
+    #Given list of eligible players and the position,
+    #Determines best players for that position
+    #Adds players to list of closed players
+    
+    if len(eligible_players) == 1:
+        new_optimal_lineup.insert(position_dict[position], eligible_players[0])
+        ineligible.add(eligible_players[0][0])
+        if position == 'OF' or 'Util':
+                position_dict[position] += 1
+    else:
+        eligible_players.sort(key = lambda x: x[1], reverse=True)
+        print eligible_players
+        new_optimal_lineup.insert(position_dict[position], eligible_players[0])
+        ineligible.add(eligible_players[0][0])
+        if position == 'OF' or 'Util':
+                position_dict[position] += 1
     return None
     
 #def optimal_pitching(pitchers):
 def optimal_pitching():
     return None
     
+def make_hitting_lineup(batting):
+    #Make current hitting lineup
+    
+    #Make ranking of positions used for sorting
+    
+
+    #unsorted lineup
+    lineup = [(name, current_position) for (name, ((current_position, e_p), (s, e))) in batting if current_position != 'BN']
+    
+    #sort by values in position_dict
+    lineup.sort(key=lambda x: position_dict[x[1]])
+    
+    return lineup
+    
 def optimal_lineup():
     #Take in current roster, projections
     #find optimal hitting and pitching lineup
     
+    #Get current team data
     batting, pitching = get_roster_data()
     
-    batter_names = [name for (name, _) in batting]
+    #Construct current lineups (sorted)
+    current_hitting_lineup = make_hitting_lineup(batting)
     
-    bat_projection, pitch_projection = get_player_projections()
+    #names not used yet, I'm assuming will be for SQL lookup
+    batter_names = [name for (name, _) in batting]
+    pitcher_names = [name for (name, _) in pitching]
+    
+    bat_projection, pitch_projection = get_player_projections(batter_names, pitcher_names)
     
     batters = zip(batting, bat_projection)
+    #pitchers = zip(pitching, pitch_projection)
     
-    #x = optimal_batting(batters)
+    print batters
+    
+    x = optimal_batting(batters)
     #y = optimal_pitching(pitchers)
     
     return None
      
-"""
-###             
 
-oauth = OAuth1(None, None, from_file='oauth.json',base_url='http://fantasysports.yahooapis.com/fantasy/v2/')
-yfs = FantasySport(oauth)
+### 
 
-roster_data = get_roster_data()
-print roster_data
+if __name__ == "__main__":            
+    oauth = OAuth1(None, None, from_file='oauth.json',base_url='http://fantasysports.yahooapis.com/fantasy/v2/')
+    yfs = FantasySport(oauth)
+
+    zzz = optimal_lineup()
+    
+    
+    
+    
