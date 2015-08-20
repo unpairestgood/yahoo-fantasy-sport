@@ -9,12 +9,13 @@ gameID = 346
 leagueID = 1328
 teamID = 12
 playerID = 8781
-input_date = '2015-08-17'
+input_date = '2015-08-20'
 ###
 
-new_optimal_lineup = []
+new_optimal_lineup = {}
 ineligible = set()
 
+#Make ranking of positions used for sorting
 position_dict = {'C': 0, '1B': 1, '2B': 2, '3B': 3, 'SS': 4,
                     'MI': 5, 'CI': 6, 'OF': 7, 'Util': 8}
 
@@ -91,7 +92,6 @@ def parse_set_roster(data):
                 if 'starting_status' in player_info['player'][2]:
                     if 0 == player_info['player'][2]['starting_status'][1]['is_starting']:
                         starting = False
-                        print starting
                 if 0 == player_info['player'][3]['is_editable']:
                     editable = False
                     
@@ -136,27 +136,30 @@ def optimal_batting(batters):
     
     #batters = ((name, ((current_pos, eligible_positions), (starting, editable))), projection)
     position_list = ['C','1B','2B','3B','SS','MI','CI','OF','OF','OF','OF','Util','Util']
-    
+    """
     #Handle any player that cannot be edited
     for ((name, ((current_position, eligible_positions), (starting, editable))), projection) in batters:
         if not editable:
-            new_optimal_lineup.insert(position_dict[current_position],(name, projection))
+            new_optimal_lineup.insert(position_dict[current_position],(name, (current_position, projection)))
             if current_position == 'OF' or 'Util':
                 position_dict[current_position] += 1
+            position_list.remove(current_position)
+            ineligible.add(name)
+    """
+    for ((name, ((current_position, eligible_positions), (starting, editable))), projection) in batters:
+        if not editable:
+            new_optimal_lineup[name] = current_position
             position_list.remove(current_position)
             ineligible.add(name)
     
     #For all positions remaining that do not have an uneditable player in them
     for pos in position_list:
-        eligible_players = [(name, projection) for ((name, ((current_pos, elig_pos), (starting, editable))), projection) in batters
-                            if pos in elig_pos if starting if name not in ineligible]
-        print '%s: %s' % (pos, eligible_players)
-        qt = optimal_batting_position(eligible_players, pos)
+        eligible_players = [(name, projection) for ((name, ((current_position, eligible_positions), (starting, editable))), projection) in batters
+                            if pos in eligible_positions if starting if name not in ineligible]
+        _ = optimal_batting_position(eligible_players, pos)
         
-    print new_optimal_lineup
-    print 'ineligible %s' % ineligible
-        
-    return None
+    return new_optimal_lineup
+
     
 def optimal_batting_position(eligible_players, position):
     #Given list of eligible players and the position,
@@ -164,17 +167,13 @@ def optimal_batting_position(eligible_players, position):
     #Adds players to list of closed players
     
     if len(eligible_players) == 1:
-        new_optimal_lineup.insert(position_dict[position], eligible_players[0])
+        new_optimal_lineup[eligible_players[0][0]] = position
         ineligible.add(eligible_players[0][0])
-        if position == 'OF' or 'Util':
-                position_dict[position] += 1
     else:
         eligible_players.sort(key = lambda x: x[1], reverse=True)
-        print eligible_players
-        new_optimal_lineup.insert(position_dict[position], eligible_players[0])
+        new_optimal_lineup[eligible_players[0][0]] = position
         ineligible.add(eligible_players[0][0])
-        if position == 'OF' or 'Util':
-                position_dict[position] += 1
+
     return None
     
 #def optimal_pitching(pitchers):
@@ -184,17 +183,42 @@ def optimal_pitching():
 def make_hitting_lineup(batting):
     #Make current hitting lineup
     
-    #Make ranking of positions used for sorting
-    
-
     #unsorted lineup
-    lineup = [(name, current_position) for (name, ((current_position, e_p), (s, e))) in batting if current_position != 'BN']
+    #In defunct list format
+    #lineup = [(name, current_position) for (name, ((current_position, e_p), (s, e))) 
+            #in batting if current_position != 'BN']
+            
+    #In better dict format
+    old_lineup = {name: current_position for (name, ((current_position, _), _)) in batting}
     
     #sort by values in position_dict
-    lineup.sort(key=lambda x: position_dict[x[1]])
+    #lineup.sort(key=lambda x: position_dict[x[1]])
     
-    return lineup
+    return old_lineup
     
+def find_differences(o_h_l, n_h_l):
+    #compare old and new hitting lineup
+    
+    diffy = set(o_h_l.keys()) - set(n_h_l.keys())
+    
+    for bn_plyr in diffy:
+        n_h_l[bn_plyr] = 'BN'
+    
+    diff = {x:n_h_l[x] for x in n_h_l if n_h_l[x] != o_h_l[x]}
+    
+    for x in diff:
+        p1 = x
+        pos1 = diff[x]
+        for k, v in o_h_l.items():
+            if v == diff[x]:
+                p2 = k
+                pos2 = n_h_l[p2]
+                print 'Move %s to %s, and move %s to %s' % (p1, pos1, p2, pos2)
+                
+    
+    return None
+                
+        
 def optimal_lineup():
     #Take in current roster, projections
     #find optimal hitting and pitching lineup
@@ -203,7 +227,7 @@ def optimal_lineup():
     batting, pitching = get_roster_data()
     
     #Construct current lineups (sorted)
-    current_hitting_lineup = make_hitting_lineup(batting)
+    original_hitting_lineup = make_hitting_lineup(batting)
     
     #names not used yet, I'm assuming will be for SQL lookup
     batter_names = [name for (name, _) in batting]
@@ -214,10 +238,16 @@ def optimal_lineup():
     batters = zip(batting, bat_projection)
     #pitchers = zip(pitching, pitch_projection)
     
-    print batters
-    
-    x = optimal_batting(batters)
+    new_hitting_lineup = optimal_batting(batters)
     #y = optimal_pitching(pitchers)
+    
+    print 'old'
+    print original_hitting_lineup
+    
+    print '\nnew'
+    print new_hitting_lineup
+    
+    zzzxzx = find_differences(original_hitting_lineup, new_hitting_lineup)
     
     return None
      
