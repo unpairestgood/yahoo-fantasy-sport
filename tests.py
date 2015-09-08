@@ -8,7 +8,8 @@ from xml.etree import cElementTree as ctree
 from yahoo_oauth import OAuth1
 
 from fantasy_sport import FantasySport
-from fantasy_sport.roster import Player, Roster, Transaction
+from fantasy_sport.roster import Player, Roster
+from fantasy_sport.transaction import Player, Transaction
 from fantasy_sport.utils import pretty_json, pretty_xml
 
 logging.getLogger('yahoo_oauth').setLevel(logging.WARNING)
@@ -234,7 +235,7 @@ class TestFantasySportRoster(unittest.TestCase):
         self.assertEqual(response.status_code, 200)   
 
     def test_set_roster_players(self,):
-        response = self.yfs.set_roster_players('346.p.7710', 'OF', '346.p.9377', 'BN', ['346.l.1328.t.12'], '2015-08-20')
+        response = self.yfs.set_roster_players('346.p.8950', 'OF', '346.p.9719', 'BN', ['346.l.1328.t.12'], '2015-09-08')
         self.assertEqual(response.status_code, 201)
         
 """
@@ -336,7 +337,10 @@ class TestPaulRoster(unittest.TestCase):
     def test_delete_waiver(self,):
         response = self.yfs.delete_waiver('346.l.1328.w.c.12_8922_9723', '1', '5')
         self.assertEqual(response.status_code, 201)
-
+        
+    def test_edit_waiver(self,):
+        response = self.yfs.edit_waiver('346.l.1328.w.c.12_10050_9600', '1', '20')
+        self.assertEqual(response.status_code, 201)
 
         
 class TestTransactionPut(unittest.TestCase):

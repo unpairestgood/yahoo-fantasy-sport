@@ -20,22 +20,6 @@ class Base(object):
         raise NotImplementedError
     
     @abc.abstractmethod
-    def xml_builder_put(self,):
-        raise NotImplementedError
-        
-    @abc.abstractmethod
-    def xml_builder_addordrop(self,):
-        raise NotImplementedError
-        
-    @abc.abstractmethod
-    def xml_builder_adddrop(self,):
-        raise NotImplementedError
-        
-    @abc.abstractmethod
-    def xml_builder_proposetrade(self,):
-        raise NotImplementedError
-        
-    @abc.abstractmethod
     def xml_builder_roster(self,):
         raise NotImplementedError
         
@@ -51,7 +35,7 @@ class Base(object):
         #"""Return object as a json string
         #"""
         #return json.dumps(self.json, ensure_ascii=True).encode('ascii')
-    
+        
     def to_xml(self,):
         """Return object as a xml string
         """
@@ -111,21 +95,6 @@ class Roster(Base):
             #}
         #}
         #return self.json
-        
-    def xml_builder_addordrop(self,):
-        return None
-        
-    def xml_builder_adddrop(self,):
-        return None
-        
-    def xml_builder_proposetrade(self,):
-        return None
-        
-    def xml_builder_put(self,):
-        return None
-        
-    def xml_builder_roster(self,):
-        return None
     
     def xml_builder_player(self,):
         return None
@@ -217,170 +186,6 @@ class Player(Base):
         #}
 
         #return self.json
-        
-    def xml_builder_addordrop(self,):
-        return None
-        
-    def xml_builder_adddrop(self,):
-        return None
-        
-    def xml_builder_proposetrade(self,):
-        return None
-        
-    def xml_builder_put(self,):
-        return None
-        
-    def xml_builder_player(self,):
-        return None
-        
-    def xml_builder_player_proposetrade(self,):
-        return None
-        
-    def xml_builder_roster(self,):
-        return None
-        
-        
-class Transaction(Base):
-    """transaction class
-    -- edit waiver
-    -- allow/disallow trades
-    -- allow/disallow against trades (commissioner only)
-    -- vote against trades
-    -- add, drop, or add/drop a player
-    -- propose trades
-    """
-    def __init__(self, type, transaction_key=None, priority=None, faab_bid=None,
-                 action=None, trade_note=None, voter_team_key=None, players=None,
-                 trader_team_key=None, tradee_team_key=None, propose_trade=False
-        ):
-        """Initialize a transaction object for PUT functions"""
-        super(Base, self).__init__()
-        
-        self.type = type
-        self.transaction_key = transaction_key
-        self.priority = priority
-        self.faab_bid = faab_bid
-        self.action = action
-        self.trade_note = trade_note
-        self.voter_team_key = voter_team_key
-        self.players=players
-        self.trader_team_key = trader_team_key
-        self.tradee_team_key = tradee_team_key
-        self.propose_trade = propose_trade
-        
-        types = {'waiver': self.xml_builder_put, 'pending_trade': self.xml_builder_put,
-                'add': self.xml_builder_addordrop, 'drop': self.xml_builder_addordrop, 'add/drop': self.xml_builder_adddrop
-        }
-        
-        if self.propose_trade:
-            self.xml_builder_proposetrade()
-        elif self.type in types:
-            types[self.type]()
-        else:
-            raise Exception("Method %s not implemented" % self.type)
-    
-    
-    def xml_builder_put(self,):
-        """Convert into xml object
-        """
-        content = ctree.Element('fantasy_content')
-        transaction = ctree.SubElement(content, 'transaction')
-         
-        transaction_key = ctree.SubElement(transaction, 'transaction_key')
-        transaction_key.text = self.transaction_key
-         
-        type = ctree.SubElement(transaction, 'type')
-        type.text = self.type
-         
-        if self.priority:
-            priority = ctree.SubElement(transaction, 'waiver_priority')
-            priority.text = self.priority
-         
-        if self.faab_bid:
-            faab_bid = ctree.SubElement(transaction, 'faab_bid')
-            faab_bid.text = self.faab_bid
-         
-        if self.action:
-            action = ctree.SubElement(transaction, 'action')
-            action.text = self.action
-         
-        if self.trade_note:
-            trade_note = ctree.SubElement(transaction, 'trade_note')
-            trade_note.text = self.trade_note
-         
-        if self.voter_team_key:
-            voter_team_key = ctree.SubElement(transaction, 'voter_team_key')
-            voter_team_key.text = self.voter_team_key 
-             
-        self.xml = content 
-        
-        
-    def xml_builder_addordrop(self,):
-        """Convert into xml object
-        """
-        content = ctree.Element('fantasy_content')
-        transaction = ctree.SubElement(content, 'transaction')
-         
-        type = ctree.SubElement(transaction, 'type')
-        type.text = self.type
-         
-        for player in self.players :
-            transaction.append(player.xml)
-        
-        self.xml = content
-        
-        
-    def xml_builder_adddrop(self,):
-        """Convert into xml object
-        """
-        content = ctree.Element('fantasy_content')
-        transaction = ctree.SubElement(content, 'transaction')
-         
-        type = ctree.SubElement(transaction, 'type')
-        type.text = self.type
-        
-        if self.faab_bid:
-            faab_bid = ctree.SubElement(transaction, 'faab_bid')
-            faab_bid.text = self.faab_bid
-        
-        players = ctree.SubElement(transaction, 'players')
-        
-        for player in self.players:
-            players.append(player.xml)
-            
-        self.xml = content
-            
-    def xml_builder_proposetrade(self,):
-        """Convert into xml object
-        """
-        content = ctree.Element('fantasy_content')
-        transaction = ctree.SubElement(content, 'transaction')
-         
-        type = ctree.SubElement(transaction, 'type')
-        type.text = self.type
-        
-        trader_team_key = ctree.SubElement(transaction, 'trader_team_key')
-        trader_team_key.text = self.trader_team_key
-        
-        tradee_team_key = ctree.SubElement(transaction, 'tradee_team_key')
-        tradee_team_key.text = self.tradee_team_key
-        
-        if self.trade_note:
-            trade_note = ctree.SubElement(transaction, 'trade_note')
-            trade_note.text = self.trade_note
-        
-        players = ctree.SubElement(transaction, 'players')
-        
-        for player in self.players:
-            players.append(player.xml)
-            
-        self.xml = content
-            
-    def xml_builder_player(self,):
-        return None
-        
-    def xml_builder_player_proposetrade(self,):
-        return None
         
     def xml_builder_roster(self,):
         return None

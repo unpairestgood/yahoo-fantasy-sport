@@ -1,5 +1,6 @@
 from __future__ import absolute_import
-from fantasy_sport.roster import Player, Roster, Transaction
+from fantasy_sport.roster import Player, Roster
+#from fantasy_sport.transaction import Player, Transaction
 
 
 class FantasySport(object):
@@ -47,7 +48,6 @@ class FantasySport(object):
         headers = {'Content-Type':'application/xml'}
         #data = roster.to_json() if self.fmt == 'json' else roster.to_xml() # Getting roster xml or json according to self.fmt
         data = transaction.to_xml()
-        print data
         
         response = self.oauth.session.put(uri, data=data, headers=headers)
         print response.status_code
@@ -63,7 +63,8 @@ class FantasySport(object):
         headers = {'Content-Type':'application/xml'}
         #data = roster.to_json() if self.fmt == 'json' else roster.to_xml() # Getting roster xml or json according to self.fmt
         data = roster.to_xml()
-        print data
+        
+        print 'data: %s' % data
         
         response = self.oauth.session.put(uri, data=data, headers=headers)
         print response.status_code

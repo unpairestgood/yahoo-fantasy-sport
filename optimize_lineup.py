@@ -9,7 +9,7 @@ gameID = 346
 leagueID = 1328
 teamID = 12
 playerID = 8781
-input_date = '2015-08-20'
+input_date = '2015-09-08'
 ###
 
 new_optimal_lineup = {}
@@ -237,6 +237,8 @@ def optimal_lineup():
     
     batters = zip(batting, bat_projection)
     #pitchers = zip(pitching, pitch_projection)
+    
+    print 'batters %s \n' % batters
     
     new_hitting_lineup = optimal_batting(batters)
     #y = optimal_pitching(pitchers)
